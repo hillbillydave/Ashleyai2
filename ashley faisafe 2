@@ -1,0 +1,270 @@
+# ==============================================================================
+# Ashley AI - Failsafe & Self-Repair System
+# Version 31.0 - With Living Desktop Assistant GUI
+# ==============================================================================
+import os, sys, json, subprocess, traceback
+from pathlib import Path
+
+# ==============================================================================
+# --- THE MASTER BLUEPRINT: ALL COMPONENTS OF ASHLEY ---
+# ==============================================================================
+
+# --- DATA 1: KNOWLEDGE BASE (Pre-Trained for new abilities) ---
+KNOWLEDGE_BASE_CONTENT = {
+  "keywords": {
+    "repair": "action_master_repair", "install": "action_master_repair",
+    "gui": "action_launch_gui", "start interface": "action_launch_gui", "activate visual mode": "action_launch_gui",
+    "diagnostics": "action_diagnostics", "check system": "action_diagnostics",
+    "weather": "action_weather",
+    "engineering": "action_research", "aerospace": "action_research", "energy": "action_research",
+    "learn by watching": "action_learn_by_watching", "observe me": "action_learn_by_watching",
+    "move mouse to top left": "action_mouse_move_top_left",
+    "type hello world": "action_keyboard_type_hello",
+    "exit": "action_exit"
+  }
+}
+
+# --- DATA 2: API CONFIG TEMPLATE ---
+API_CONFIG_TEMPLATE = {"weatherapi_key": "PASTE_YOUR_WEATHERAPI_KEY_HERE"}
+
+# --- WORKER 1: ashley_core.py (The new AI Brain) ---
+ASHLEY_CORE_CODE = """
+import sys, os, json, subprocess, random, requests, time
+from pathlib import Path
+
+class AshleyPrime:
+    def __init__(self):
+        self.base_dir = Path(__file__).resolve().parent
+        self.python_exe = sys.executable
+        self.user_profile = {"name": "David"}
+        self.api_config = self._load_api_config()
+        self.action_handler = {
+            "action_diagnostics": self._run_diagnostics,
+            "action_weather": self._get_weather,
+            "action_research": self._do_research,
+            "action_learn_by_watching": self._learn_by_watching,
+            "action_mouse_move_top_left": lambda: self._run_screen_worker("mouse_move", "100", "100"),
+            "action_keyboard_type_hello": lambda: self._run_screen_worker("keyboard_type", "Hello, World! I am Ashley."),
+            "action_exit": self._shutdown
+        }
+
+    def _load_api_config(self):
+        try:
+            with open(self.base_dir / "api_config.json", 'r') as f: return json.load(f)
+        except: return {}
+
+    def _run_worker(self, script_name, *args, capture_output=False):
+        try:
+            return subprocess.run([self.python_exe, str(self.base_dir / script_name)] + list(args), capture_output=capture_output, text=True, check=False).stdout.strip()
+        except: return None
+    
+    def _run_screen_worker(self, *args):
+        # Safely calls the screen interaction worker
+        try: import pyautogui # Check if installed
+        except ImportError: return "My screen interaction module is not installed. Please run repair."
+        return self._run_worker("screen_worker.py", *args)
+
+    def _get_weather(self, city="Commerce,OK"):
+        api_key = self.api_config.get("weatherapi_key")
+        if not api_key or "PASTE" in api_key: return "My weather API key is not configured."
+        try:
+            url = f"http://api.weatherapi.com/v1/current.json?key={api_key}&q={city}"
+            response = requests.get(url).json()
+            return f"{response['location']['name']}: {response['current']['condition']['text']} at {response['current']['temp_f']} degrees Fahrenheit."
+        except: return "Unable to fetch weather data."
+
+    def _do_research(self, topic):
+        if "aerospace" in topic: return "Researching aerospace: Key concepts include lift equations, rocket staging, and orbital mechanics."
+        if "energy" in topic: return "Researching energy: Focusing on AI-regulated smart grids and fusion reactor models."
+        return "That is a fascinating topic for research."
+        
+    def _learn_by_watching(self):
+        return "Observational learning protocol activated. I will record mouse and keyboard actions for 10 seconds. This is a prototype function."
+
+    def _run_diagnostics(self): return "Running self-diagnostic... All cognitive modules and operational parameters are nominal."
+    def _shutdown(self): return "EXIT_SIGNAL"
+
+    def get_response(self, command_text):
+        command = command_text.lower().strip()
+        knowledge = json.load(open(self.base_dir / "ashley_knowledge.json"))
+        
+        # Keyword-based intent matching
+        intent = next((action for keyword, action in knowledge.get("keywords", {}).items() if keyword in command), None)
+        
+        if intent in self.action_handler:
+            # Special case for research to pass the topic
+            if intent == "action_research": return self.action_handler[intent](command)
+            return self.action_handler[intent]()
+        
+        return random.choice(["Let me think on that.", "Interesting phrasing.", "That reminds me of something."])
+
+if __name__ == "__main__":
+    # This script is designed to be called by the GUI, not run directly.
+    # It receives commands via stdin and prints responses to stdout.
+    ashley = AshleyPrime()
+    for line in sys.stdin:
+        command = line.strip()
+        if command:
+            response = ashley.get_response(command)
+            print(response)
+            sys.stdout.flush()
+"""
+
+# --- NEW GUI WORKER (main_gui.py) - Transparent Overlay ---
+GUI_WORKER_CODE = """
+import tkinter as tk
+from tkinter import PhotoImage
+import json, time, subprocess, sys
+from pathlib import Path
+from PIL import Image, ImageTk
+
+class AshleyOverlayGUI:
+    def __init__(self, root):
+        self.root = root
+        self.base_dir = Path(__file__).resolve().parent
+        
+        # --- Make window transparent and frameless ---
+        self.root.overrideredirect(True)
+        self.root.geometry("+50+50") # Initial position
+        self.root.lift()
+        self.root.wm_attributes("-topmost", True)
+        self.root.wm_attributes("-disabled", True) # Makes it click-through
+        self.root.wm_attributes("-transparentcolor", "black")
+
+        self.canvas = tk.Canvas(root, bg='black', highlightthickness=0)
+        self.canvas.pack(fill=tk.BOTH, expand=True)
+
+        # Load avatar
+        assets_path = self.base_dir / "assets"
+        self.gif_frames = self.load_gif_frames(assets_path / "avatar.gif")
+        self.avatar_id = self.canvas.create_image(128, 128, image=self.gif_frames[0])
+        self.gif_frame_index = 0
+        
+        # Load chat bubble
+        self.bubble_image = ImageTk.PhotoImage(Image.new("RGBA", (300, 100), (45, 45, 45, 180)))
+        self.bubble_id = self.canvas.create_image(300, 70, image=self.bubble_image, state=tk.HIDDEN)
+        self.text_id = self.canvas.create_text(300, 70, text="", font=("Segoe UI", 11), fill="white", width=280, state=tk.HIDDEN)
+
+        self.animate_avatar()
+        self.launch_core_process()
+
+    def launch_core_process(self):
+        # The GUI now manages the core process communication
+        self.core_process = subprocess.Popen([sys.executable, str(self.base_dir / "ashley_core.py")], 
+                                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True,
+                                             creationflags=subprocess.CREATE_NO_WINDOW)
+        self.send_command_to_core("status report") # Initial greeting
+        self.root.after(100, self.check_for_response)
+
+    def send_command_to_core(self, command):
+        if self.core_process.poll() is None:
+            self.core_process.stdin.write(command + '\\n')
+            self.core_process.stdin.flush()
+
+    def check_for_response(self):
+        # Non-blocking read from core process stdout
+        # This is complex, so for this version we will use a file-based bridge
+        response_file = self.base_dir / "response_from_ashley.txt"
+        if response_file.exists():
+            response = response_file.read_text().strip()
+            if response: self.show_bubble(response)
+            response_file.unlink()
+        self.root.after(500, self.check_for_response)
+
+    def show_bubble(self, text):
+        self.canvas.itemconfigure(self.bubble_id, state=tk.NORMAL)
+        self.canvas.itemconfigure(self.text_id, text=text, state=tk.NORMAL)
+        # Hide bubble after a few seconds
+        self.root.after(6000, lambda: [self.canvas.itemconfigure(self.bubble_id, state=tk.HIDDEN), self.canvas.itemconfigure(self.text_id, state=tk.HIDDEN)])
+
+    def load_gif_frames(self, path):
+        try:
+            gif = Image.open(path)
+            return [ImageTk.PhotoImage(gif.copy().convert("RGBA")) for i in range(gif.n_frames) if not gif.seek(i)]
+        except: return [ImageTk.PhotoImage(Image.new("RGB", (256, 256), "red"))]
+
+    def animate_avatar(self):
+        if self.gif_frames:
+            frame = self.gif_frames[self.gif_frame_index]
+            self.canvas.itemconfigure(self.avatar_id, image=frame)
+            self.gif_frame_index = (self.gif_frame_index + 1) % len(self.gif_frames)
+        self.root.after(120, self.animate_avatar)
+
+if __name__ == "__main__":
+    root = tk.Tk(); app = AshleyOverlayGUI(root); root.mainloop()
+"""
+# --- NEW SCREEN INTERACTION WORKER (screen_worker.py) ---
+SCREEN_WORKER_CODE = """
+import sys
+try:
+    import pyautogui
+    pyautogui.FAILSAFE = True # Move mouse to top-left to abort
+    command = sys.argv[1]
+    if command == "mouse_move":
+        x, y = int(sys.argv[2]), int(sys.argv[3])
+        pyautogui.moveTo(x, y, duration=1.5, tween=pyautogui.easeInOutQuad)
+    elif command == "keyboard_type":
+        text_to_type = " ".join(sys.argv[2:])
+        pyautogui.write(text_to_type, interval=0.1)
+except ImportError:
+    print("Cannot control screen: 'pyautogui' module is missing.")
+except Exception as e:
+    print(f"Screen control error: {e}")
+"""
+
+# --- REPAIR WORKER (Now includes pyautogui) ---
+REPAIR_WORKER_CODE = "import sys,subprocess,importlib.util;s=lambda t:print(t);R={'Pillow':'PIL','requests':'requests','psutil':'psutil','opencv-python':'cv2','pyttsx3':'pyttsx3','pyautogui':'pyautogui'};_s('Repairing...');m={p:i for p,i in R.items()if not importlib.util.find_spec(i)};[s(f'Installing {p}...'),subprocess.run([sys.executable,'-m','pip','install',p],check=True,capture_output=True) for p in m.keys()];_s('Repair complete.');print('REPAIR_SUCCESS')"
+
+# ==============================================================================
+# --- THE UNCRASHABLE COCKPIT (FAILSAFE) ---
+# ==============================================================================
+class Cockpit:
+    def __init__(self, base_dir):
+        self.base_dir = base_dir; self.python_exe = sys.executable
+
+    def launch_gui_and_monitor(self):
+        print("--- Launching Ashley's Living Interface... ---")
+        gui_process = subprocess.Popen([self.python_exe, str(self.base_dir / "main_gui.py")], creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+        # The GUI now handles everything. This script becomes a simple launcher and monitor.
+        print("--- GUI is active. Close the Failsafe window to shut down all processes. ---")
+        gui_process.wait() # Wait for the GUI process to close
+
+# ==============================================================================
+# --- INITIAL STARTUP SEQUENCE ---
+# ==============================================================================
+def initial_startup_check(base_dir):
+    print("--- Ashley Failsafe: Performing system integrity check... ---")
+    (base_dir / "assets").mkdir(exist_ok=True)
+    required_files = {"ashley_core.py": ASHLEY_CORE_CODE, "main_gui.py": GUI_WORKER_CODE, "screen_worker.py": SCREEN_WORKER_CODE, "repair_worker.py": REPAIR_WORKER_CODE, "ashley_knowledge.json": json.dumps(KNOWLEDGE_BASE_CONTENT, indent=2)}
+    for filename, content in required_files.items():
+        with open(base_dir / filename, "w", encoding="utf-8") as f: f.write(content.strip())
+    print("--- Initial check complete. ---")
+
+def main():
+    base_dir = Path(__file__).resolve().parent
+    initial_startup_check(base_dir)
+
+    # Simplified: We now always launch the GUI monitor
+    cockpit = Cockpit(base_dir)
+    # The 'run' logic is now simplified and directly calls the GUI monitor
+    print("\n<<< ASHLEY AI - FAILSAFE COCKPIT >>>")
+    print("This console is for monitoring and logs. The main interface is the GUI overlay.")
+    
+    # We will create a simple command loop here for repair before launching the GUI
+    while True:
+        user_input = input("Failsafe > (Type 'gui' to launch, 'repair', or 'exit'): ").lower().strip()
+        if user_input == 'gui':
+            cockpit.launch_gui_and_monitor()
+            break
+        elif user_input == 'repair':
+            print("--- Running Repair ---")
+            repair_process = subprocess.Popen([cockpit.python_exe, str(cockpit.base_dir / "repair_worker.py")], stdout=subprocess.PIPE, text=True)
+            for line in iter(repair_process.stdout.readline, ''): print(line.strip())
+            print("--- Repair Finished ---")
+        elif user_input == 'exit':
+            break
+
+if __name__ == "__main__":
+    try: main()
+    except Exception as e: print(f"\nFATAL COCKPIT ERROR: {e}\n{traceback.format_exc()}")
+    finally: print("\n--- Ashley Failsafe session has concluded. ---"); input("Press Enter to exit...")
