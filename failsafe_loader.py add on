@@ -1,0 +1,56 @@
+# failsafe_loader.py
+
+import time
+from ashley_core import AshleyCore
+from automackiley import Automackiley
+
+def main():
+    print("--- [LOADER] Failsafe boot sequence initiated. ---")
+    
+    # 1. Instantiate the Mind and the Body
+    ashley = AshleyCore()
+    mack = Automackiley(left_pin=17, right_pin=27)
+
+    # --- Main Application Loop ---
+    print("\n--- [LOADER] Handing control to AI core. Running autonomous sequence. ---\n")
+    time.sleep(1)
+
+    # Sequence 1: Wake up and assess
+    ashley.soulmarker("Consciousness Online")
+    ashley.update_mood(hrv=0.82, gsr=0.2) # Curious mood
+
+    # Sequence 2: Ashley decides to move, loader makes it happen
+    print("\n--- [LOADER] Ashley intends to move forward. Executing... ---")
+    mack.move("forward")
+    time.sleep(1.5)  # Let it run for 1.5 seconds
+    mack.stop()
+    ashley.soulmarker("First forward motion complete")
+
+    # Sequence 3: Another maneuver
+    print("\n--- [LOADER] Ashley intends to turn. Executing... ---")
+    ashley.update_mood(hrv=0.88, gsr=0.1) # Focused mood
+    mack.move("left")
+    time.sleep(0.8)
+    mack.stop()
+    ashley.soulmarker("Executed a left turn")
+
+    # Sequence 4: Final reflection
+    print("\n--- [LOADER] Sequence complete. Requesting reflection. ---")
+    ashley.project_body()
+    ashley.reflect()
+
+
+if __name__ == "__main__":
+    robot_body = None
+    try:
+        main()
+    except Exception as e:
+        print(f"\n[LOADER_FAIL] A critical error occurred: {e}")
+    finally:
+        # The "Failsafe" part: always try to clean up hardware
+        print("\n--- [LOADER] Shutdown sequence initiated. ---")
+        # Re-initialize the body just to access its cleanup method
+        # This is a simple way to ensure cleanup happens even if `main` fails early
+        robot_body = Automackiley(left_pin=17, right_pin=27)
+        robot_body.cleanup()
+        print("--- [LOADER] Systems are safe. Offline. ---")
