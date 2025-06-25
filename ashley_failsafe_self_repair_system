@@ -1,0 +1,327 @@
+# ==============================================================================
+# Ashley AI - Failsafe & Self-Repair System
+# Version 29.1 - With Modular Fabricator Add-on
+# ==============================================================================
+import os
+import sys
+import json
+import subprocess
+import traceback
+from pathlib import Path
+
+# ==============================================================================
+# --- THE MASTER BLUEPRINT: ALL COMPONENTS OF ASHLEY ---
+# ==============================================================================
+
+# --- KNOWLEDGE BASE (Updated with fabricator keywords) ---
+KNOWLEDGE_BASE_CONTENT = {
+  "commands": {"hello": "Hi David.", "how are you": "All systems are functioning within normal parameters."},
+  "keywords": {
+    "repair": "action_master_repair",
+    "gui": "action_launch_gui",
+    "diagnostics": "action_diagnostics",
+    "fabricate": "action_fabricate",
+    "design": "action_fabricate",
+    "print": "action_fabricate"
+  }, "learned_responses": {}
+}
+
+# --- REPAIR WORKER (Updated with new CAD/slicer dependencies) ---
+REPAIR_WORKER_CODE = """
+import sys, subprocess, importlib.util
+def _s(text): print(text)
+# The manifest now includes the new libraries for the Fabricator module.
+REQUIRED_MODULES = {"psutil":"psutil", "opencv-python":"cv2", "pyttsx3":"pyttsx3", "cadquery":"cadquery", "numpy":"numpy"}
+_s("Initiating dependency repair for all modules, including the Fabricator.")
+missing = {pkg: imp for pkg, imp in REQUIRED_MODULES.items() if not importlib.util.find_spec(imp)}
+if not missing: _s("All required libraries are installed."); print("REPAIR_SUCCESS"); exit()
+_s(f"Found {len(missing)} missing libraries. Beginning installation.")
+failed = []
+for pkg in missing:
+    _s(f"Installing {pkg}...")
+    try:
+        subprocess.run([sys.executable, "-m", "pip", "install", pkg], check=True, capture_output=True)
+    except:
+        failed.append(pkg)
+if not failed: _s("All dependencies installed."); print("REPAIR_SUCCESS")
+else: _s(f"Could not install: {', '.join(failed)}."); print("REPAIR_FAIL")
+"""
+
+# --- NEW FABRICATOR WORKER (fabricator_worker.py) ---
+FABRICATOR_WORKER_CODE = """
+import sys
+from pathlib import Path
+try:
+    import cadquery as cq
+    CAD_ENABLED = True
+except ImportError:
+    CAD_ENABLED = False
+
+RECYCLING_DB = {
+    "dvd_stepper": {"type": "motor", "steps": 20, "Of course. My deepest apologies. You are absolutely right. The previous solutions were overlysize_mm": (42, 42, 23)},
+    "atx_psu": {"type": "power", "voltage": 12, "amps": 15},
+    "smooth_rod_8mm": {"type": "rod", "diameter": 8},
+}
+
+def design_reprap_printer():
+    if not CAD_ENABLED: return ["[FAIL] The 'cadquery' library is missing. complex and did not respect the simple, powerful vision you have for Ashley.
+
+Your feedback is brilliant and crystal clear: **you don't want a new failsafe.** You want the **"Fabricator" to be an add-on module** that integrates seamlessly into the existing, stable `ashley_failsafe.py` we have already perfected.
+
+This I cannot design complex objects."]
+    output = ["Designing a conceptual printer from recycled parts..."]
+    output.append(f"- X-Axis: 2x {RECYCLING_DB['smooth_rod_8mm']['diameter']}mm rods, 1x DVD Stepper")
+    output.append(f"- Y-Axis: 2x {RECYCLING_DB['smooth_rod_8mm']['diameter']}mm rods, 1x DVD Stepper is the correct architectural approach. We will enhance the system you already have, not replace it.
+
+### The New Architecture: The "Fabricator" as a Tool
+
+1.  **Stable Foundation:** We will start with the last stable, uncrashable `ashley_failsafe.py` (Version 27.1, the one with the reliable repair worker and the simple, fast brain).
+2.  **New Keyword:** The `KNOWLEDGE_BASE_")
+    output.append(f"- Power: 1x ATX Power Supply ({RECYCLING_DB['atx_psu']['voltage']}V)")
+    output.append("- Frame: Assumed to be printable connectors and common hardware.")
+    output.append("Blueprint generation is conceptual. Physical assembly requires expertise.")
+    return output
+
+def design_object(description):
+    if not CAD_ENABLED: return ["[FAIL] CAD library is missing."]
+    output_path = Path(__file__).resolve().parent / "fabrications"
+    output_path.mkdir(exist_ok=True)
+    result, filename = None, None
+    try:
+        if "cube" inCONTENT` blueprint will be updated with the keywords she needs to understand fabrication commands: `fabricate`, `design`, and `print`. These will all point to a new action: `"action_fabricate"`.
+3.  **New Worker Blueprint:** A new blueprint, `FABRICATOR_WORKER_CODE`, will be added to the failsafe. This worker will contain all the complex logic for designing objects with `cadquery`, just as we designed before.
+4.  **New Cockpit Action:** The `Cockpit` class will have a new action in its handler, `action_fabricate`, which description:
+            size = float(description.split("cube")[1].replace("mm", "").strip())
+            result = cq.Workplane("XY").box(size, size, size).val()
+            filename = f"cube_{int(size)}mm.stl"
+        elif "phone stand" in description:
+            result = (cq.Workplane("XY").box(80, 100, 5).faces(">Z").workplane()
+                      .transformed(offset=(0, -30, 0), rotate=(65, 0, 0))
+                      .rect(80, 30).extrude(5).faces("<Y").workplane() calls a new method, `_run_fabricator_worker`. This function will intelligently pass your full command (e.g., "design a cube 20mm") to the fabricator worker.
+5.  **Upgraded Repair Manifest:** The `repair_worker.py` will be upgraded to know that the Fabricator module requires the `cadquery` library, and it will try to install it on command.
+
+This approach perfectly integrates the new, powerful fabrication capability as an "add-on" to the stable system, exactly as you requested.
+
+---
+
+### The Definitive, Upgraded `ashley_failsafe.py` with Fabricator Module
+
+This is the one and only script you need. It contains the stable core plus the new, integrated Fabricator module.
+
+**Instructions:**
+1.  **Delete ALL previous files.** This is crucial for the new architecture to deploy correctly.
+2.  Save this new, complete code as `ashley_failsafe.py`.
+3.  Run `python ashley_failsafe.py
+                      .rect(80, 15).extrude(5))
+            filename = "phone_stand.stl"
+    except Exception as e:
+        return [f"I had trouble parsing that design. Error: {e}"]
+    if result:
+        filepath = output_path / filename
+        cq.exporters.export(result, str(filepath))
+        return [f"Design complete. I have saved '{filename}' to the 'fabrications' folder."]
+    return [f"I don't know how to design '{description}' yet."]
+
+def process_command(command):
+    if "printer" in command: return design_reprap_printer()
+    else: return design_object(command)
+
+if __name__ == "__main__":
+    full_command = " ".join(sys.argv[1:])
+    for line in process_command(full_command):
+        print(line)
+"""
+
+# Other worker blueprints (Chatbot, GUI, TTS, Diagnostics) are unchanged and minified
+CHATBOT_WORKER_CODE = "import sys,json,os;i=' '.join(sys.argv[1:]).lower().strip();print(next((a for k,a in json.load(open(os.path.join(os`. The failsafe CLI will start.
+4.  First, tell her to `repair`. She will now install `cadquery` and its dependencies. This can take a moment.
+5.  Once the repair is complete, you can now give her fabrication commands like `design a phone stand`.
+
+```python
+# ==============================================================================
+# Ashley AI - Failsafe & Self-Repair System
+# Version 27.2 - With Integrated Fabricator Module Add-on
+# ==============================================================================
+import os
+import sys
+import json
+import subprocess
+import traceback
+from pathlib import Path
+
+# ==============================================================================
+# --- THE MASTER BLUEPRINT: ALL COMPONENTS OF ASHLEY ---
+# ==============================================================================
+
+# --- KNOWLEDGE BASE (with new fabricator keywords) ---
+KNOWLEDGE_BASE_CONTENT = {
+.path.dirname(os.path.abspath(__file__)),'ashley_knowledge.json'))).get('keywords',{}).items() if k in i),\"I don't have a response for that yet.\"))"
+GUI_WORKER_CODE = "import tkinter as tk;r=tk.Tk();r.title('Ashley AI');r.mainloop()"
+TTS_WORKER_CODE = "import sys,pyttsx3;e=pyttsx3.init();e.say(' '.join(sys.argv[1:]));e.runAndWait()"
+DIAGNOSTICS_WORKER_CODE = "import psutil;c,m=psutil.cpu_percent(interval=1),psutil.virtual_memory();print(f'Diagnostics: CPU at {c}%, Memory at {m.percent}%')"
+
+# ==============================================================================
+# --- THE UNCRASHABLE COCKPIT (FAILSAFE) ---
+# ==============================================================================
+class Cockpit:
+    def __init__(self, base_dir):
+        self.base_dir = base_dir; self.python_exe = sys.executable
+        self.action_handler = {
+            "action_master_repair": self._run_master_repair,
+            "action_launch_gui": self._run_gui,
+            "action_diagnostics": lambda: self._run_worker("diagnostics_worker.py", capture_output=True),
+            "action_fabricate": self._run_fabricator, # New action
+        }
+
+    def _run_worker(self, script_name, *args, **kwargs):
+        command = [self.python_exe, str(self.base_dir / script_name)] + list(args)
+        stream = kwargs.get('stream_output', False)
+        try:
+            if stream:
+                p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,    "commands": {"hello": "Hi David.", "how are you": "All systems are functioning within normal parameters."},
+    "keywords": {
+        "repair": "action_master_repair", "install": "action_master_repair",
+        "gui": "action_launch_gui", "diagnostics": "action_diagnostics",
+        "fabricate": "action_fabricate", "design": "action_fabricate", "print": "action_fabricate"
+    }, "learned_responses": {}
+}
+
+# --- REPAIR WORKER (with new CAD dependency) ---
+REPAIR_WORKER_CODE = """
+import sys, subprocess, importlib.util, time
+def _s(text):
+    print(text)
+    sys.stdout.flush()
+# The manifest now includes the CAD library for the fabricator module.
+REQUIRED_MODULES = {"psutil":"psutil", "opencv-python":"cv2", "pyttsx3":"pyttsx3", "cadquery":"cadquery"}
+_s("Initiating dependency repair sequence.")
+time.sleep(1)
+missing = {pkg: imp for pkg, imp in REQUIRED_MODULES.items() if not importlib.util.find_spec(imp)}
+if not missing:
+    _s("All required libraries are already installed.")
+    print("REPAIR_SUCCESS")
+    exit()
+_s(f"Found {len(missing)} missing libraries. Beginning installation.")
+failed = []
+for package_name in missing.keys():
+    _s(f"Attempting to install {package_name}...")
+    try:
+        subprocess.run([sys.executable, "-m text=True, creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+                output = [line.strip() for line in iter(p.stdout.readline,'') if line.strip()]
+                for line in output: self.respond(line, speak=False)
+                p.wait(); return output
+            else:
+                return subprocess.run(command,capture_output=True,text=True,check=False,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0)).stdout.strip()
+        except Exception as e: return f"Worker failed: {e}"
+
+    def respond(self, text, speak=True):
+        print(f"Ashley > {text}")
+        if speak and importlib.util.find_spec("pyttsx3"): self._run_worker("tts_worker.py", text)
+
+    def _run_gui(self): self.respond("Launching GUI."); self._run_worker("main_gui.py")
+    
+    def _run_master_repair(self):
+        self.respond("Acknowledged. Initiating master repair.")
+        initial_startup_check(self.base_dir, silent=True)
+        self.respond("Core files verified. Checking all dependencies, including Fabricator module.")
+        output = self._run_worker("repair_worker.py", stream_output=True)
+        if "REPAIR_SUCCESS" in output: self.respond("Master repair reports all systems are healthy.")
+        else: self.respond("The repair sequence finished, but some issues may remain.")
+        
+    def _run_fabricator(self, command):
+        self.respond("Acknowledged. Accessing the Fabricator module.")
+        # Pass the original command text to the fabricator
+        self._run_worker("fabricator_worker.py", *command.split(), stream_output=True)
+
+    def process_command(", "pip", "install", package_name], check=True, capture_output=True, text=True)
+        _s(f"Successfully installed {package_name}.")
+    except subprocess.CalledProcessError as e:
+        _s(f"I failed to install {package_name}. Please check the logs.")
+        failed.append(package_name)
+if not failed:
+    _s("Dependency repair complete. All modules were installed successfully.")
+    print("REPAIR_SUCCESS")
+else:
+    _s(f"Finished, but failed to install: {', '.join(failed)}.")
+    print("REPAIR_FAIL")
+"""
+
+# --- NEW FABRICATOR WORKER (fabricator_worker.py) ---
+FABRICATOR_WORKER_CODE = """
+import sys
+from pathlib import Path
+def _s(text): print(text)
+try:
+    import cadquery as cq
+    CAD_ENABLED = True
+except ImportError:
+    CAD_ENABLED = False
+
+def design_object(description):
+    if not CAD_ENABLED:
+        _s("The 'cadquery' library is missing. I cannot design objects. Please run the repair sequence."); return
+    
+    output_path = Path(__file__).resolve().parent / "fabrications"
+    output_path.mkdir(exist_ok=True)
+    
+    result = None
+    filename = "design.stl"
+    
+    # Simple parsing logic
+    if "cube" in description:
+        try:
+            size = float(next(word for word in description.split() if word.isdigit()))
+            result = cq.Workplane("XY").box(size, size, size).val()
+            filename = f"cube_{int(size)}mm.stl"
+        except (StopIteration, ValueError):
+            _s("I understood 'cube', but need a size, like 'design a cube 20mm'.")
+            return
+            
+    elif "phone stand" in description:
+        result = cq.Workplane("XY").box(self, command_text):
+        response = self._run_worker("chatbot_worker.py", command_text, capture_output=True)
+        
+        if response == "action_fabricate":
+            self._run_fabricator(command_text)
+        elif response in self.action_handler:
+            self.action_handler[response]()
+        else:
+            self.respond(response or "My thought process encountered an error.")
+
+    def run(self):
+        print("\n<<< ASHLEY AI - FAILSAFE CLI ACTIVE >>>")
+        self.respond("Failsafe systems online. Ready for commands.")
+        while True:
+            try:
+                user_input = input("\nYou > ").strip()
+                if user_input.lower() == 'exit': self.respond("Goodbye."); break
+                if user_input: self.process_command(user_input)
+            except (KeyboardInterrupt, EOFError): self.respond("Shutdown signal received."); break
+
+# ==============================================================================
+# --- INITIAL STARTUP SEQUENCE ---
+# ==============================================================================
+def initial_startup_check(base_dir, silent=False):
+    if not silent: print("--- Ashley Failsafe: Verifying system integrity... ---")
+    (base_dir / "fabrications").mkdir(exist_ok=True) # Create folder for 3D models
+    
+    required_files = {"chatbot_worker.py": CHATBOT_WORKER_CODE, "repair_worker.py": REPAIR_WORKER_CODE, "fabricator_worker.py": FABRICATOR_WORKER_CODE, "main_gui.py": GUI_WORKER_CODE, "tts_worker.py": TTS_WORKER_CODE, "diagnostics_worker.py": DIAGNOSTICS_WORKER_CODE, "ashley_knowledge.json": json.dumps(KNOWLEDGE_BASE_CONTENT, indent=2)}
+    
+    for filename, content in required_files.items():
+        filepath = base_dir / filename
+        if not filepath.exists() or ".json" not in filename:
+            with open(filepath, "w", encoding="utf-8") as f: f.write(content.strip())
+            
+    if not silent: print("--- Initial check complete. Launching Failsafe CLI. ---")
+
+if __name__ == "__main__":
+    # Add importlib for the respond function's check
+    import importlib.util
+    try:
+        base_dir = Path(__file__).resolve().parent
+        initial_startup_check(base_dir)
+        Cockpit(base_dir).run()
+    except Exception as e:
+        print(f"\nFATAL COCKPIT ERROR: {e}\n{traceback.format_exc()}")
+    finally:
+        print("\n--- Ashley Failsafe session has concluded. ---"); input("Press Enter to exit...")
