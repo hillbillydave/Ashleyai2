@@ -1,0 +1,28 @@
+{
+  "commands": {
+    "hello": "Hi David. How can I help today?",
+    "hi": "Hello there.",
+    "hey": "Hey! What can I do for you?",
+    "how are you": "All systems are functioning within normal parameters.",
+    "status report": "All systems are online and running smoothly.",
+    "are you okay": "I am fully operational."
+  },
+  "keywords": {
+    "repair": "action_master_repair",
+    "install": "action_master_repair",
+    "fix yourself": "action_master_repair",
+    "system wide repair": "action_master_repair",
+    "gui": "action_launch_gui",
+    "launch gui": "action_launch_gui",
+    "start interface": "action_launch_gui",
+    "diagnostics": "action_diagnostics",
+    "debug": "action_diagnostics",
+    "scan system": "action_diagnostics",
+    "camera": "action_camera",
+    "face recognition": "action_face_recognition",
+    "search": "action_search",
+    "google": "action_search",
+    "weather": "action_weather"
+  },
+  "learned_responses": {}
+}
