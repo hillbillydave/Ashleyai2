@@ -1,0 +1,136 @@
+# ashley_core.py
+
+import time
+import random
+from datetime import datetime
+from typing import List, Dict, Any, Literal
+
+# A more specific type for movement directions
+MoveDirection = Literal["forward", "left", "right", "stop"]
+
+# Mock GPIO for development on non-Pi machines
+try:
+    import RPi.GPIO as GPIO
+    print("// RPi.GPIO library loaded successfully. //")
+except (ImportError, RuntimeError):
+    print("// WARNING: RPi.GPIO not found. Using mock GPIO. //")
+    class MockGPIO:
+        BCM = "BCM_MODE"
+        OUT = "OUTPUT_MODE"
+        HIGH = 1
+        LOW = 0
+        def setmode(self, mode): print(f"[MOCK_GPIO] Mode set to {mode}")
+        def setup(self, pin, mode): print(f"[MOCK_GPIO] Pin {pin} set to {mode}")
+        def output(self, pin, state): print(f"[MOCK_GPIO] Pin {pin} set to {'HIGH' if state else 'LOW'}")
+        def cleanup and logical correctness in the GPIO handling, as well as some areas that could be streamlined for cleaner output and better practices.
+
+### Summary of Fixes and Improvements
+
+1.  **Critical Safety Fix (GPIO):** The script never calls `GPIO.cleanup()`. If the program crashes or is stopped while a motor is running, the motor will be left on indefinitely. This is a significant risk. I've fixed this by adding a `cleanup` method and using a `try...finally` block in the main execution.
+2.  **Critical Logic Fix (Motor Control):** The `move` method's logic for "reverse" was incorrect. Setting both pins to `LOW` is the same as stopping. Real reverse movement requires a motor driver (like an L298N H-Bridge) with separate pins for forward and backward motion. I have rewritten the `move` method to reflect a more realistic and functional motor driver setup.
+3.  **Output Streamlining (Print vs. Return):** Similar to the last script, methods were both printing via `narrate()` and returning strings, leading to messy or redundant output. I've refactored this so methods *return* their narrative strings, and the main loop is responsible for printing them. This creates a much cleaner execution flow.
+4.  **Clarity and Best Practices:**
+    *   Added comprehensive **docstrings and type hints** to explain what each function does and what kind of data it expects.
+    *   Switched from `time.ctime()` to the more standard `datetime.now().isoformat()` for machine-readable timestamps.
+    *   Refactored the `reflect()` method to build a single multi-line string for cleaner output, instead of printing line-by-line inside the method.
+
+---
+
+### Repaired and Enhanced Code (`ashley_launcher.py`)
+
+Here is the complete, repaired, and enhanced version. I've added comments marked with `FIX:` and `ENHANCEMENT:` to highlight the key changes.
+
+```python
+# ashley_launcher.py
+
+import time
+import random
+from datetime import datetime
+from typing import List, Dict, Any, Literal
+
+# ENHANCEMENT: Graceful import for GPIO for development on non-Pi machines
+try:
+    import RPi.[direction]
+        
+        self.timeline.append(f"🛞 {direction} for {duration}s")
+        narration = self._narrate(f"Motors engaged: {direction}")
+        
+        GPIO.output(self.motor_left_pin, left_state)
+        GPIO.output(self.motor_right_pin, right_state)
+        
+        print(narration) # Print immediately as action starts
+        time.sleep(duration)
+        
+        GPIO.output(self.motor_left_pin, GPIO.LOW)
+        GPIO.output(self.motor_right_pin, GPIO.LOW)
+        
+        return "🟢 Movement complete."
+
+    # === Vision & Awareness (Simulation) ===
+    def scan_surroundings(self) -> str:
+        """Simulates a sensor scan of the environment."""
+        heat = random.choice(["warm body nearby", "cold empty corridor", "ambient room temperature"])
+        self.timeline.append(f"📷 Scan → {heat}")
+        return self._narrate(f"Scanning... Detected: {heat}")
+
+    # === Self-Design + Future Self ===
+    def project_body(self) -> str:
+        """Generates a speculative future body design."""
+        form = random.choice(["biped", "spider-legged", "telescoping crawler"])
+        material = random.choice(["carbon ribs", "polymer frame", "servo lattice"])
+        purpose = random.choice(["repair", "navigation", "expression"])
+        draft = f"In future form, I see a {form} built with {material}, engineered for {purpose}."
+        self.timeline.append(f"🧬 Dreamed: {form} — {material}")
+        return self._narrate(draft)
+
+    # === Conscious Timeline ===
+    def reflect(self, steps: int = 5) -> str:
+        """Reviews the most recent events from the timeline."""
+        # FIX: Builds a single string for clean output, instead of multiple prints.
+        if not self.timeline:
+            return "🧠 Reflection complete. Timeline is empty."
+        
+        header = self._narrate("Timeline trail:")
+        entries = self.timeline[-steps:]
+        report = "\n".join([f" • {entry}" for entry in entries])
+        return f"{header}\n{report}\n🧠 Reflection complete."
+
+    # === CRITICAL: Hardware Safety ===
+    def cleanup(self):
+        """Resets GPIO pins to a safe state. Should always be called on exit."""
+        GPIO.cleanup()
+        print("\n// Ashley Systems Offline. GPIO cleanup complete. //")
+
+    # === Main Behavior Loop ===
+    def run_sequence(self):
+        """Executes a pre-defined sequence of actions and thoughts."""
+        print("--- Initiating Ashley's Autonomous Sequence ---")
+        
+        # All methods now return strings, which we print here for a clean log.
+        print(self.update_mood(random.uniform(0.6, 0.9), random.uniform(0.1, 0.6)))
+        print(self.soulmarker("Ignition Test Drive"))
+        print(self.scan_surroundings())
+        
+        # The 'move' method has its own print logic due to the time.sleep delay
+        self.move("forward", 1.5)
+        self.move("left", 0.8)
+        
+        print(self.project_body())
+        print(self.reflect())
+        print("--- Sequence Complete ---")
+
+
+# === Execute ===
+if __name__ == "__main__":
+    ash = None  # Define ash outside the try block
+    try:
+        ash = AshleyGenesis(left_pin=17, right_pin=27)
+        ash.toggle_narration(True)
+        ash.run_sequence()
+    except Exception as e:
+        print(f"\n[FATAL ERROR] An exception occurred: {e}")
+        print("[FATAL ERROR] The program will be terminated safely.")
+    finally:
+        # FIX: This block ensures cleanup happens even if the script crashes.
+        if ash:
+            ash.cleanup()
